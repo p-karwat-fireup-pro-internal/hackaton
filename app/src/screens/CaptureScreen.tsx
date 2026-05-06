@@ -64,14 +64,12 @@ export function CaptureScreen({ job }: { job: Job }) {
                 : "transparent",
             })}
           >
-            <View style={{ transform: [{ rotate: "180deg" }] }}>
-              <Icon
-                name="chevron-right"
-                size={22}
-                color={tokens.colors.title}
-                strokeWidth={2.4}
-              />
-            </View>
+            <Icon
+              name="chevron-left"
+              size={22}
+              color={tokens.colors.title}
+              strokeWidth={2.4}
+            />
           </Pressable>
           <View style={{ flex: 1, paddingLeft: 4 }}>
             <Text
@@ -103,6 +101,7 @@ export function CaptureScreen({ job }: { job: Job }) {
           showsVerticalScrollIndicator={false}
         >
           <Text
+            accessibilityRole="header"
             style={{
               ...fontSans(700),
               color: tokens.colors.title,
@@ -284,16 +283,17 @@ export function CaptureScreen({ job }: { job: Job }) {
           )}
         </ScrollView>
 
-        <View
-          style={{
-            opacity: canSave ? 1 : 0.5,
-            paddingBottom: insets.bottom > 0 ? 0 : 8,
-          }}
-        >
+        <View style={{ paddingBottom: insets.bottom > 0 ? 0 : 8 }}>
           <BottomCTA
             label="Zapisz i zakończ zlecenie"
             iconName="check"
             onPress={onSaveAndComplete}
+            disabled={!canSave}
+            accessibilityHint={
+              canSave
+                ? undefined
+                : "Najpierw dodaj zdjęcie i co najmniej trzy znaki opisu"
+            }
           />
         </View>
       </KeyboardAvoidingView>

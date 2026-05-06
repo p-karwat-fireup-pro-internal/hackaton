@@ -8,10 +8,38 @@ type Props = {
   queuedCount?: number;
 };
 
+function pluralPozycje(n: number): string {
+  if (n === 1) return "pozycja";
+  const lastTwo = n % 100;
+  const last = n % 10;
+  if (lastTwo >= 12 && lastTwo <= 14) return "pozycji";
+  if (last >= 2 && last <= 4) return "pozycje";
+  return "pozycji";
+}
+
+function a11yLabel(state: Props["state"], queuedCount: number): string {
+  if (state === "synced") return "Synchronizacja: zsynchronizowano";
+  if (state === "queued")
+    return `Synchronizacja: w kolejce ${queuedCount} ${pluralPozycje(queuedCount)}, czeka na sieć`;
+  if (queuedCount > 0)
+    return `Tryb offline, ${queuedCount} ${pluralPozycje(queuedCount)} w kolejce`;
+  return "Tryb offline";
+}
+
 export function SyncIndicator({ state, queuedCount = 0 }: Props) {
+  const liveProps = {
+    accessibilityLabel: a11yLabel(state, queuedCount),
+    accessibilityLiveRegion: "polite" as const,
+    accessible: true,
+  };
+
   if (state === "synced") {
     return (
-      <View className="flex-row items-center" style={{ gap: 6 }}>
+      <View
+        className="flex-row items-center"
+        style={{ gap: 6 }}
+        {...liveProps}
+      >
         <View
           style={{
             width: 8,
@@ -35,7 +63,11 @@ export function SyncIndicator({ state, queuedCount = 0 }: Props) {
 
   if (state === "queued") {
     return (
-      <View className="flex-row items-center" style={{ gap: 6 }}>
+      <View
+        className="flex-row items-center"
+        style={{ gap: 6 }}
+        {...liveProps}
+      >
         <Icon
           name="refresh-cw"
           size={14}
@@ -55,7 +87,11 @@ export function SyncIndicator({ state, queuedCount = 0 }: Props) {
   }
 
   return (
-    <View className="flex-row items-center" style={{ gap: 6 }}>
+    <View
+      className="flex-row items-center"
+      style={{ gap: 6 }}
+      {...liveProps}
+    >
       <Icon name="cloud-off" size={14} color={tokens.colors.body} />
       <Text
         style={{

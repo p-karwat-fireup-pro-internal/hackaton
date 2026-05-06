@@ -247,6 +247,7 @@ function AllDoneSummary({ count }: { count: number }) {
         />
       </View>
       <Text
+        accessibilityRole="header"
         style={{
           ...fontSans(700),
           color: tokens.colors.title,

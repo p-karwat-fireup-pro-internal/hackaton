@@ -33,6 +33,11 @@ export const tokens = {
     // White on signal-blue surfaces — slight blue tint preserves the
     // Same-Light Rule (every neutral carries a trace of the accent hue).
     "ink-on-signal": "#fbfcfe",
+    // Translucent overlays on signal-blue surfaces — same hue family as
+    // ink-on-signal, exposed as named tokens so component code never reaches
+    // for raw rgba.
+    "signal-overlay": "rgba(251,252,254,0.18)", // decorative chip on signal
+    "signal-ink-muted": "rgba(251,252,254,0.78)", // secondary label on signal
 
     // Status palette — color is never the only signal; pair with icon + label.
     // Foreground hues meet WCAG AA on both `cream` and the matching `*-soft`
@@ -48,10 +53,6 @@ export const tokens = {
     "status-progress-soft": "#dbe7f6",
     "status-done-soft": "#d8ecdf",
     "status-urgent-soft": "#fdf3dc",
-
-    // White/black — never used directly; expose for explicit override only.
-    "pure-white": "#ffffff",
-    "pure-black": "#000000",
   },
 
   // React Native treats each weight as a separate font family, so we expose

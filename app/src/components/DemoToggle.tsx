@@ -52,7 +52,7 @@ export function DemoToggle({
               backgroundColor: active
                 ? tokens.colors.cream
                 : pressed
-                  ? "rgba(246,247,249,0.5)"
+                  ? tokens.colors.mist
                   : "transparent",
               alignItems: "center",
               justifyContent: "center",

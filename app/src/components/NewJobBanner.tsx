@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Pressable, Text, View } from "react-native";
 import Animated, {
   useSharedValue,
@@ -35,6 +35,7 @@ export function NewJobBanner({ visible, count = 1, onPress }: Props) {
     };
   }, []);
 
+  const wasVisible = useRef(false);
   useEffect(() => {
     const duration = reduceMotion ? 0 : 280;
     translate.value = withTiming(visible ? 0 : -80, {
@@ -45,7 +46,16 @@ export function NewJobBanner({ visible, count = 1, onPress }: Props) {
       duration: reduceMotion ? 0 : 200,
       easing: Easing.out(Easing.quad),
     });
-  }, [visible, translate, opacity, reduceMotion]);
+
+    if (visible && !wasVisible.current) {
+      const message =
+        count === 1
+          ? "Nowe zlecenie dodane do listy"
+          : `${count} nowe zlecenia dodane do listy`;
+      AccessibilityInfo.announceForAccessibility(message);
+    }
+    wasVisible.current = visible;
+  }, [visible, translate, opacity, reduceMotion, count]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translate.value }],
@@ -93,7 +103,7 @@ export function NewJobBanner({ visible, count = 1, onPress }: Props) {
             width: 28,
             height: 28,
             borderRadius: 14,
-            backgroundColor: "rgba(255,255,255,0.18)",
+            backgroundColor: tokens.colors["signal-overlay"],
             alignItems: "center",
             justifyContent: "center",
           }}
@@ -118,7 +128,7 @@ export function NewJobBanner({ visible, count = 1, onPress }: Props) {
         <Text
           style={{
             ...fontSans(500),
-            color: "rgba(251,252,254,0.78)",
+            color: tokens.colors["signal-ink-muted"],
             fontSize: 13,
           }}
         >

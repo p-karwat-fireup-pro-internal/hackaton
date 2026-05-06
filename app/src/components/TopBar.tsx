@@ -42,6 +42,7 @@ export function TopBar({ date, syncState, queuedCount }: Props) {
       <View className="flex-row items-end justify-between">
         <View>
           <Text
+            accessibilityRole="header"
             style={{
               ...fontSans(700),
               color: tokens.colors.title,

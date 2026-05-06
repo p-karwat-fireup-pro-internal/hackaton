@@ -131,6 +131,7 @@ function HeroBlock({ job }: { job: Job }) {
         </Text>
       </View>
       <Text
+        accessibilityRole="header"
         style={{
           ...fontSans(700),
           color: tokens.colors.title,
@@ -481,14 +482,20 @@ function PhotosBlock({
             style={({ pressed }) => ({
               flexDirection: "row",
               alignItems: "center",
-              gap: 4,
-              paddingVertical: 4,
-              opacity: pressed ? 0.6 : 1,
+              gap: 6,
+              paddingVertical: 10,
+              paddingHorizontal: 12,
+              marginRight: -12,
+              minHeight: 44,
+              borderRadius: 10,
+              backgroundColor: pressed
+                ? tokens.colors["mist-deep"]
+                : "transparent",
             })}
           >
             <Icon
               name="plus"
-              size={14}
+              size={16}
               color={tokens.colors.title}
               strokeWidth={2.4}
             />

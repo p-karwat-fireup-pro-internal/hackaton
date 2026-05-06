@@ -8,6 +8,8 @@ type Props = {
   onPress?: () => void;
   iconName?: IconName;
   variant?: "primary" | "secondary";
+  disabled?: boolean;
+  accessibilityHint?: string;
 };
 
 export function BottomCTA({
@@ -15,6 +17,8 @@ export function BottomCTA({
   onPress,
   iconName = "play",
   variant = "primary",
+  disabled = false,
+  accessibilityHint,
 }: Props) {
   const isPrimary = variant === "primary";
   return (
@@ -30,6 +34,11 @@ export function BottomCTA({
     >
       <Pressable
         onPress={onPress}
+        disabled={disabled}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityHint={accessibilityHint}
+        accessibilityState={{ disabled }}
         style={({ pressed }) => ({
           backgroundColor: isPrimary
             ? pressed
@@ -44,6 +53,7 @@ export function BottomCTA({
           alignItems: "center",
           justifyContent: "center",
           gap: 10,
+          opacity: disabled ? 0.5 : 1,
         })}
       >
         <Icon

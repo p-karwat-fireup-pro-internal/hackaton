@@ -11,6 +11,7 @@ export type IconName =
   | "play"
   | "alert-triangle"
   | "chevron-right"
+  | "chevron-left"
   | "cloud-off"
   | "refresh-cw"
   | "phone"
@@ -89,6 +90,14 @@ const paths: Record<IconName, React.ReactNode> = {
   "chevron-right": (
     <Path
       d="M9 6 L15 12 L9 18"
+      fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  ),
+  "chevron-left": (
+    <Path
+      d="M15 6 L9 12 L15 18"
       fill="none"
       strokeLinecap="round"
       strokeLinejoin="round"

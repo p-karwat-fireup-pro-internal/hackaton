@@ -18,7 +18,9 @@ const statusLabel: Record<Job["status"], string> = {
   done: "Ukończone",
 };
 
-export function JobRow({ job, highlightNew, onPress }: Props) {
+export const JobRow = React.memo(JobRowImpl);
+
+function JobRowImpl({ job, highlightNew, onPress }: Props) {
   const isUrgent = job.priority === "urgent" && job.status !== "done";
   const isDone = job.status === "done";
 

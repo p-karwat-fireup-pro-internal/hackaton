@@ -36,14 +36,12 @@ export function DetailTopBar({ ticketId, onBack, rightSlot }: Props) {
           backgroundColor: pressed ? tokens.colors["mist-deep"] : "transparent",
         })}
       >
-        <View style={{ transform: [{ rotate: "180deg" }] }}>
-          <Icon
-            name="chevron-right"
-            size={22}
-            color={tokens.colors.title}
-            strokeWidth={2.4}
-          />
-        </View>
+        <Icon
+          name="chevron-left"
+          size={22}
+          color={tokens.colors.title}
+          strokeWidth={2.4}
+        />
       </Pressable>
       <View style={{ flex: 1, paddingLeft: 4 }}>
         <Text
