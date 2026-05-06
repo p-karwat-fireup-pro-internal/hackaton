@@ -27,3 +27,25 @@ describe("runMigrations", () => {
     expect(v1).toBeGreaterThan(0);
   });
 });
+
+describe("002_photos_job_index", () => {
+  it("creates idx_photos_job on photos(job_id)", () => {
+    const db = new Database(":memory:");
+    runMigrations(db);
+
+    const idx = db
+      .query<{ name: string; tbl_name: string }, []>(
+        "SELECT name, tbl_name FROM sqlite_master WHERE type = 'index' AND name = 'idx_photos_job'",
+      )
+      .get();
+
+    expect(idx?.name).toBe("idx_photos_job");
+    expect(idx?.tbl_name).toBe("photos");
+  });
+
+  it("advances schema_version to at least 2", () => {
+    const db = new Database(":memory:");
+    const v = runMigrations(db);
+    expect(v).toBeGreaterThanOrEqual(2);
+  });
+});
