@@ -2,17 +2,45 @@ import SwiftUI
 
 @main
 struct FieldNotebookApp: App {
+    @State private var store = AppStore()
+
     var body: some Scene {
         WindowGroup {
-            VStack(spacing: 12) {
-                Text("Field Notebook").font(.display).foregroundStyle(Color.titleInk)
-                Text("Steel Field Notebook").font(.headline).foregroundStyle(Color.bodyInk)
-                Text("body 16 pt floor").font(.bodyText).foregroundStyle(Color.bodyInk)
-                Text("ZL-26-0429").font(.mono(.medium, size: 14)).foregroundStyle(Color.muted)
+            RootView()
+                .environment(store)
+                .task { await store.bootstrap() }
+        }
+    }
+}
+
+struct RootView: View {
+    @Environment(AppStore.self) private var store
+    @State private var path: [Route] = []
+
+    var body: some View {
+        switch store.phase {
+        case .bootstrapping:
+            ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity).background(Color.cream)
+        case .loggedOut:
+            LoginView()
+        case .lockedOut, .ready:
+            BiometricGateView {
+                NavigationStack(path: $path) {
+                    TodayView()
+                        .toolbar {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                Button("Wyloguj") { Task { await store.logout() } }
+                                    .font(.labelSmall)
+                            }
+                        }
+                        .navigationDestination(for: Route.self) { route in
+                            switch route {
+                            case .jobDetail(let id): JobDetailView(jobId: id)
+                            case .capture(let id):   CaptureView(jobId: id)
+                            }
+                        }
+                }
             }
-            .padding()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.cream)
         }
     }
 }
