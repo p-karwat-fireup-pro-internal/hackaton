@@ -4,7 +4,7 @@ options:
   deploymentTarget:
     iOS: "17.0"
   developmentLanguage: pl
-configurations:
+configs:
   Debug: debug
   Debug-Local: debug
   Release: release
