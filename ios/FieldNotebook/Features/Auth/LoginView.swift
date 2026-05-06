@@ -60,8 +60,10 @@ struct LoginView: View {
         } catch let e as APIError {
             error = e
             if case .accountLocked(let until) = e { lockedUntil = until }
+        } catch let e as KeychainError {
+            error = .underlying("Keychain status \(e.status)")
         } catch {
-            self.error = .network
+            error = .underlying(String(describing: error))
         }
     }
 

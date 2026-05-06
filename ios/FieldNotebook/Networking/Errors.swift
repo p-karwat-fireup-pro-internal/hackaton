@@ -11,6 +11,7 @@ enum APIError: Error, Equatable {
     case server
     case network
     case decoding
+    case underlying(String)
 
     var userMessagePolish: String {
         switch self {
@@ -23,6 +24,7 @@ enum APIError: Error, Equatable {
         case .invalidRequest:         return "Nieprawidłowe dane."
         case .server, .network:       return "Brak połączenia z serwerem."
         case .decoding:               return "Błąd przetwarzania odpowiedzi."
+        case .underlying(let detail): return "Błąd: \(detail)"
         }
     }
 }
