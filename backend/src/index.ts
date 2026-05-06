@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { health } from "./routes/health";
 import { auth } from "./routes/auth";
 import { me } from "./routes/me";
+import { jobs } from "./routes/jobs";
 import { runMigrations } from "./db/migrate";
 import { config } from "./config";
 
@@ -9,6 +10,7 @@ const app = new Hono();
 app.route("/health", health);
 app.route("/auth", auth);
 app.route("/me", me);
+app.route("/jobs", jobs);
 
 runMigrations();
 

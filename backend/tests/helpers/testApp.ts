@@ -6,6 +6,7 @@ import { seed } from "../../src/db/seed";
 import { health } from "../../src/routes/health";
 import { auth } from "../../src/routes/auth";
 import { me } from "../../src/routes/me";
+import { jobs } from "../../src/routes/jobs";
 
 export async function buildApp() {
   const db = new Database(":memory:");
@@ -16,5 +17,6 @@ export async function buildApp() {
   app.route("/health", health);
   app.route("/auth", auth);
   app.route("/me", me);
+  app.route("/jobs", jobs);
   return { app, db };
 }
