@@ -7,6 +7,7 @@ import { health } from "../../src/routes/health";
 import { auth } from "../../src/routes/auth";
 import { me } from "../../src/routes/me";
 import { jobs } from "../../src/routes/jobs";
+import { jobPhotos, photoFiles } from "../../src/routes/photos";
 
 export async function buildApp() {
   const db = new Database(":memory:");
@@ -18,5 +19,7 @@ export async function buildApp() {
   app.route("/auth", auth);
   app.route("/me", me);
   app.route("/jobs", jobs);
+  app.route("/jobs", jobPhotos);
+  app.route("/photos", photoFiles);
   return { app, db };
 }
