@@ -13,27 +13,36 @@ struct JobDetailView: View {
                          syncState: store.syncState)
             if let job {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        StatusBadge(status: job.status)
-                        Text(job.address).font(.display).foregroundStyle(Color.titleInk)
-                        if let unit = job.unit {
-                            Text(unit).font(.bodyLarge).foregroundStyle(Color.bodyInk)
+                    VStack(alignment: .leading, spacing: 0) {
+                        HeroBlock(job: job)
+                            .padding(.horizontal, 16)
+                            .padding(.top, 4)
+                        DescriptionBlock(job: job)
+                            .padding(.top, 24)
+                        MetaBlock(job: job)
+                            .padding(.top, 28)
+                        if job.contactName != nil {
+                            ContactBlock(job: job)
+                                .padding(.top, 28)
                         }
-                        Text(job.description).font(.bodyText).foregroundStyle(Color.bodyInk)
-
-                        InfoRow(label: "Okno", value: job.scheduledWindow)
-                        InfoRow(label: "Czas pracy", value: "\(job.estimatedDurationMin) min")
-                        if let n = job.contactName { InfoRow(label: "Kontakt", value: n) }
-                        if let p = job.contactPhone { InfoRow(label: "Telefon", value: p) }
+                        Timeline(job: job, photoCount: store.photosByJob[job.id]?.count ?? 0)
+                            .padding(.top, 28)
+                        if job.status != .pending {
+                            PhotosBlock(
+                                photos: store.photosByJob[job.id] ?? [],
+                                canAdd: job.status == .in_progress
+                            )
+                            .padding(.top, 28)
+                        }
                     }
-                    .padding(20)
+                    .padding(.bottom, 24)
                 }
                 .background(Color.cream)
                 .safeAreaInset(edge: .bottom) {
                     cta(for: job)
                 }
             } else {
-                Text("Zlecenie nie istnieje.").padding()
+                missingJobView
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -43,32 +52,67 @@ struct JobDetailView: View {
     private func cta(for job: JobDTO) -> some View {
         switch job.status {
         case .pending:
-            BottomCTA(title: "Zacznij zlecenie") {
+            BottomCTA(title: "Rozpocznij zlecenie", iconName: .play) {
                 Task { await store.startJob(job.id) }
             }
         case .in_progress:
+            let label = (store.photosByJob[job.id]?.isEmpty ?? true)
+                ? "Dodaj raport i zakończ"
+                : "Zakończ zlecenie"
             NavigationLink(value: Route.capture(jobId: job.id)) {
-                Text("Dodaj zdjęcie")
-                    .font(.sans(.semibold, size: 17))
-                    .foregroundStyle(Color.inkOnSignal)
-                    .frame(maxWidth: .infinity, minHeight: Spacing.ctaHeight)
-                    .background(Color.signal, in: RoundedRectangle(cornerRadius: Radius.lg))
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 12)
+                BottomCTAShape(title: label, iconName: .check)
             }
+            .buttonStyle(.plain)
         case .done:
             EmptyView()
         }
     }
+
+    private var missingJobView: some View {
+        VStack(spacing: 16) {
+            IconView(name: .alertTriangle, size: 32).foregroundStyle(Color.statusUrgent)
+            Text("Zlecenie zniknęło z listy")
+                .font(.titleText).foregroundStyle(Color.titleInk)
+            Text("Mogło zostać przepisane. Wróć do listy, żeby zobaczyć aktualne zadanie.")
+                .font(.bodyText).foregroundStyle(Color.muted)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.top, 48)
+        .background(Color.cream)
+        .safeAreaInset(edge: .bottom) {
+            BottomCTA(title: "Wróć do listy", iconName: .chevronLeft) {
+                dismiss()
+            }
+        }
+    }
 }
 
-private struct InfoRow: View {
-    let label: String
-    let value: String
+/// `BottomCTA` siedzi na `Button`, więc owinięcie w `NavigationLink` da nam dwa
+/// klikalne warstwy. Ten kształt ma identyczny wygląd, ale bez wewnętrznego
+/// `Button` — używaj go gdy chcesz, żeby nawigacja była głównym handlerem.
+struct BottomCTAShape: View {
+    let title: String
+    var iconName: IconName?
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(label).font(.labelSmall).foregroundStyle(Color.muted)
-            Text(value).font(.bodyText).foregroundStyle(Color.bodyInk)
+        HStack(spacing: 8) {
+            if let iconName {
+                IconView(name: iconName, size: 18).foregroundStyle(Color.inkOnSignal)
+            }
+            Text(title)
+                .font(.sans(.semibold, size: 17))
+                .foregroundStyle(Color.inkOnSignal)
+        }
+        .frame(maxWidth: .infinity, minHeight: Spacing.ctaHeight)
+        .background(Color.signal, in: RoundedRectangle(cornerRadius: Radius.lg))
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .background(Color.cream)
+        .overlay(alignment: .top) {
+            Rectangle().fill(Color.borderSoft).frame(height: 1)
         }
     }
 }

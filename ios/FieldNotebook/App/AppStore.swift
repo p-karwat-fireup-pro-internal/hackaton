@@ -1,5 +1,6 @@
 import Foundation
 import Network
+import UIKit
 
 @MainActor
 @Observable
@@ -145,19 +146,44 @@ final class AppStore {
             enqueue(.transition(jobId: id, path: path))
             applyOptimisticTransition(id: id, to: transition.nextStatus)
             setSyncState(.queued(pendingActions.count))
+            playHaptic(for: transition)
             return
         }
         do {
             let updated: JobDTO = try await api.send(.post, path, as: JobDTO.self)
             apply(updated)
+            playHaptic(for: transition)
         } catch {
             enqueue(.transition(jobId: id, path: path))
             applyOptimisticTransition(id: id, to: transition.nextStatus)
             setSyncState(.queued(pendingActions.count))
+            playHaptic(for: transition)
         }
     }
 
-    func uploadPhoto(jobId: String, image: Data, description: String, mimeType: String) async {
+    /// Tactile confirmation for the technician — `start` is a soft warning
+    /// (you've moved into a working state), `complete` is success. Audio cues
+    /// can't be relied on (loud worksites), so haptics carry the channel.
+    private func playHaptic(for transition: Transition) {
+        let generator = UINotificationFeedbackGenerator()
+        switch transition {
+        case .start:    generator.notificationOccurred(.warning)
+        case .complete: generator.notificationOccurred(.success)
+        }
+    }
+
+    enum PhotoUploadResult: Equatable {
+        case uploaded
+        case queued
+        case failed(APIError)
+    }
+
+    func uploadPhoto(jobId: String, image: Data, description: String, mimeType: String) async -> PhotoUploadResult {
+        if isOfflineSim {
+            enqueue(.uploadPhoto(jobId: jobId, data: image, description: description, mimeType: mimeType))
+            setSyncState(.queued(pendingActions.count))
+            return .queued
+        }
         do {
             let photo: PhotoDTO = try await api.sendMultipart(
                 "/jobs/\(jobId)/photos",
@@ -166,9 +192,21 @@ final class AppStore {
                 fileData: image, filename: "photo.jpg", mimeType: mimeType,
                 as: PhotoDTO.self)
             appendPhoto(photo, jobId: jobId)
+            return .uploaded
+        } catch let apiError as APIError {
+            // Network/server failures get queued for the offline retry loop —
+            // these are recoverable. Auth/permission/validation failures bubble
+            // up so the caller can show them and let the user fix the input.
+            if case .network = apiError {
+                enqueue(.uploadPhoto(jobId: jobId, data: image, description: description, mimeType: mimeType))
+                setSyncState(.queued(pendingActions.count))
+                return .queued
+            }
+            return .failed(apiError)
         } catch {
             enqueue(.uploadPhoto(jobId: jobId, data: image, description: description, mimeType: mimeType))
             setSyncState(.queued(pendingActions.count))
+            return .queued
         }
     }
 

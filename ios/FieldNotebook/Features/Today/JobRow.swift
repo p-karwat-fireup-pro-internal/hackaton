@@ -5,8 +5,8 @@ struct JobRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
-            StatusDot(status: job.status)
-                .padding(.top, 6)
+            categoryAvatar
+                .padding(.top, 2)
 
             VStack(alignment: .leading, spacing: 2) {
                 categoryRow
@@ -38,10 +38,40 @@ struct JobRow: View {
         .frame(minHeight: Spacing.rowHeight, alignment: .top)
     }
 
+    /// 40 pt circular badge — neutral mistDeep for normal jobs, urgentSoft with
+    /// alert-triangle for urgent ones, statusDoneSoft with check for completed.
+    /// This is the visual anchor PRODUCT.md needs: a technician scanning the
+    /// list with one hand should see categorisation before reading any text.
+    @ViewBuilder
+    private var categoryAvatar: some View {
+        ZStack {
+            Circle().fill(avatarFill)
+            IconView(name: avatarIcon, size: 18)
+                .foregroundStyle(avatarTint)
+        }
+        .frame(width: 40, height: 40)
+    }
+
+    private var avatarFill: Color {
+        if isDone   { return Color.statusDoneSoft }
+        if isUrgent { return Color.statusUrgentSoft }
+        return Color.mistDeep
+    }
+
+    private var avatarIcon: IconName {
+        if isDone   { return .check }
+        if isUrgent { return .alertTriangle }
+        return categoryIcon(for: job.category)
+    }
+
+    private var avatarTint: Color {
+        if isDone   { return Color.statusDone }
+        if isUrgent { return Color.statusUrgent }
+        return Color.bodyInk
+    }
+
     private var categoryRow: some View {
         HStack(spacing: 6) {
-            IconView(name: categoryIcon(for: job.category), size: 12)
-                .foregroundStyle(Color.muted)
             Text(categoryLabel(for: job.category))
                 .font(.sans(.semibold, size: 12))
                 .foregroundStyle(Color.muted)

@@ -28,20 +28,43 @@ struct BiometricGateView<Content: View>: View {
     }
 
     private var lockedView: some View {
-        VStack(spacing: 16) {
-            IconView(name: .check, size: 48).foregroundStyle(Color.signal)
-            Text("Field Notebook").font(.headline)
-            if biometricUnavailable {
-                Text("Zaloguj się hasłem aplikacji, żeby kontynuować.").font(.bodyText).foregroundStyle(Color.muted)
-                Button("Zaloguj hasłem") { Task { await store.logout() } }
-                    .buttonStyle(.borderedProminent)
-            } else {
-                Button("Odblokuj") { Task { await tryUnlock() } }
-                    .buttonStyle(.borderedProminent)
+        VStack(spacing: 0) {
+            Spacer()
+            VStack(spacing: 12) {
+                ZStack {
+                    Circle().fill(Color.mistDeep)
+                    IconView(name: .wrench, size: 32).foregroundStyle(Color.bodyInk)
+                }
+                .frame(width: 72, height: 72)
+
+                Text("Field Notebook")
+                    .font(.headline).foregroundStyle(Color.titleInk)
+                Text(biometricUnavailable
+                     ? "Zaloguj się hasłem aplikacji, żeby kontynuować."
+                     : "Aplikacja zablokowana. Odblokuj, żeby zobaczyć zlecenia.")
+                    .font(.bodyText).foregroundStyle(Color.muted)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+            }
+            Spacer()
+            BottomCTA(title: ctaTitle, iconName: ctaIcon) {
+                if biometricUnavailable {
+                    Task { await store.logout() }
+                } else {
+                    Task { await tryUnlock() }
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.cream)
+    }
+
+    private var ctaTitle: String {
+        biometricUnavailable ? "Zaloguj hasłem" : "Odblokuj"
+    }
+
+    private var ctaIcon: IconName {
+        biometricUnavailable ? .chevronRight : .play
     }
 
     private func tryUnlock() async {

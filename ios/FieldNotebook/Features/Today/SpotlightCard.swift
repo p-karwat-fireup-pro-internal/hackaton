@@ -5,6 +5,7 @@ struct SpotlightCard: View {
     /// e.g. "Następne zlecenie", "Pierwsze zlecenie", "Ostatnie zlecenie",
     /// "Trwa zlecenie". Caller picks based on workday state.
     let spotlightLabel: String
+    var showOfflineNote: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -24,6 +25,10 @@ struct SpotlightCard: View {
                 .padding(.top, 12)
             footer
                 .padding(.top, 18)
+            if showOfflineNote {
+                offlineNote
+                    .padding(.top, 14)
+            }
         }
         .padding(Spacing.cardPad)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -88,8 +93,21 @@ struct SpotlightCard: View {
             }
             Spacer()
             Text(job.ticketId)
-                .font(.mono(.regular, size: 12))
+                .font(.mono(.regular, size: 13))
                 .foregroundStyle(Color.muted)
+        }
+    }
+
+    private var offlineNote: some View {
+        HStack(spacing: 8) {
+            IconView(name: .cloudOff, size: 14).foregroundStyle(Color.statusUrgent)
+            Text("Tryb offline — zmiany zapiszą się gdy wróci sieć.")
+                .font(.labelSmall)
+                .foregroundStyle(Color.muted)
+        }
+        .padding(.top, 12)
+        .overlay(alignment: .top) {
+            Rectangle().fill(Color.borderSoft).frame(height: 1)
         }
     }
 }
