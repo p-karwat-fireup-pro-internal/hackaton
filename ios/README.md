@@ -1,19 +1,19 @@
 # Field Notebook — iOS
 
-Native SwiftUI port of the Expo prototype in `app/`. Targets iOS 17.
+Natywny port w SwiftUI prototypu Expo z katalogu `app/`. Cel: iOS 17.
 
-## Local development
+## Lokalny rozwój
 
 ```bash
 cd ios
-brew install xcodegen   # one-time
+brew install xcodegen   # jednorazowo
 xcodegen generate
 open FieldNotebook.xcodeproj
 ```
 
-Pick the **Debug-Local** scheme to point at `http://localhost:3000`. Default **Debug**/**Release** schemes use the production URL in `App/Config.swift`.
+Wybierz schemat **Debug-Local**, żeby kierować na `http://localhost:3000`. Domyślne schematy **Debug**/**Release** używają produkcyjnego adresu z `App/Config.swift`.
 
-## Tests
+## Testy
 
 ```bash
 xcodebuild test \
@@ -24,35 +24,35 @@ xcodebuild test \
 
 ## CI
 
-`.github/workflows/ios.yml` builds the iOS Simulator `.app` on every push to `main` or `ios` (and via `workflow_dispatch`) and publishes it as a GitHub Actions artifact named `FieldNotebook-simulator` (14-day retention). No external services, no secrets required.
+`.github/workflows/ios.yml` buduje `.app` dla iOS Simulatora przy każdym pushu na `main` lub `ios` (oraz ręcznie z `workflow_dispatch`) i publikuje go jako artefakt GitHub Actions o nazwie `FieldNotebook-simulator` (retencja 14 dni). Bez zewnętrznych usług, bez sekretów.
 
-### Download and run the artifact on macOS
+### Pobranie i uruchomienie artefaktu na macOS
 
-Requires Xcode installed (the bundled iOS Simulator is enough for `xcrun simctl`).
+Wymagany zainstalowany Xcode (sam Simulator z Xcode wystarczy, żeby `xcrun simctl` działał).
 
 ```bash
-# 1. Fetch the latest artifact (or pass --run <id> for a specific run).
+# 1. Pobierz najnowszy artefakt (albo wskaż konkretny run przez --run <id>).
 gh run download -R <owner>/<repo> -n FieldNotebook-simulator -D /tmp/fn
 unzip /tmp/fn/FieldNotebook.zip -d /tmp/fn
 
-# 2. Pick any installed simulator and boot it.
+# 2. Wybierz dowolny zainstalowany simulator i go wystartuj.
 xcrun simctl list devices available | grep iPhone
-xcrun simctl boot "iPhone 15"        # name from the list above
+xcrun simctl boot "iPhone 15"        # nazwa z listy powyżej
 open -a Simulator
 
-# 3. Install and launch the .app by bundle id.
+# 3. Zainstaluj i uruchom .app po bundle id.
 xcrun simctl install booted /tmp/fn/FieldNotebook.app
 xcrun simctl launch booted dev.zaniewicz.fieldnotebook
 ```
 
-The default `Release` configuration points at the production backend (`https://backend.mirek-rpi.org`). Test accounts are listed in `backend/README.md`.
+Domyślna konfiguracja `Release` celuje w produkcyjny backend (`https://backend.mirek-rpi.org`). Konta testowe wymienione są w `backend/README.md`.
 
-## Smoke checklist (after installing the artifact)
+## Lista kontrolna po instalacji artefaktu
 
-- [ ] `xcrun simctl install booted` exits cleanly, app icon appears in the Simulator
-- [ ] Login as `marek@firma.pl` / `test1234` → today list shows 8 jobs (3 done, 5 pending)
-- [ ] Tap a pending job → Detail → Start → Capture → pick photo from simulator's photo library → Finish
-- [ ] Logout → Login as `kasia@firma.pl` → empty state visible
-- [ ] Logout → Login as `anna@firma.pl` → SyncIndicator shows offline; transitions land in pending queue
-- [ ] Logout → Login as `piotr@firma.pl` → New Job banner visible at top
-- [ ] Brute-force 5× wrong password on `marek@firma.pl` → 423 lockout error with countdown
+- [ ] `xcrun simctl install booted` kończy się bez błędu, ikona aplikacji pojawia się w Simulatorze
+- [ ] Login jako `marek@firma.pl` / `test1234` → lista pokazuje 8 zleceń (3 zamknięte, 5 otwartych)
+- [ ] Otwórz otwarte zlecenie → Detail → Start → Capture → wybierz zdjęcie z biblioteki Simulatora → Finish
+- [ ] Wyloguj → login jako `kasia@firma.pl` → widoczny pusty stan
+- [ ] Wyloguj → login jako `anna@firma.pl` → SyncIndicator pokazuje offline; przejścia trafiają do kolejki oczekujących
+- [ ] Wyloguj → login jako `piotr@firma.pl` → baner „New Job" widoczny u góry
+- [ ] 5× błędne hasło dla `marek@firma.pl` → 423 lockout z odliczaniem

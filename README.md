@@ -1,45 +1,45 @@
 # Hackaton — Field Notebook
 
-Mobile-only prototype for building-maintenance technicians. The repo holds three pieces:
+Prototyp aplikacji mobilnej dla techników utrzymania budynków. Repozytorium zawiera trzy części:
 
-- `app/` — Expo prototype (TypeScript + React Native + NativeWind).
-- `ios/` — native SwiftUI port (XcodeGen project).
-- `backend/` — Bun + Hono + SQLite REST API. Deployed to Coolify on the RPi at https://backend.mirek-rpi.org.
+- `app/` — prototyp w Expo (TypeScript + React Native + NativeWind).
+- `ios/` — natywny port w SwiftUI (projekt generowany przez XcodeGen).
+- `backend/` — REST API w Bun + Hono + SQLite. Wdrożone na Coolify na RPi pod adresem https://backend.mirek-rpi.org.
 
-`PRODUCT.md` is the strategic spec, `DESIGN.md` is the visual system, `CLAUDE.md` is the orientation file for Claude Code agents.
+`PRODUCT.md` to specyfikacja strategiczna, `DESIGN.md` opisuje system wizualny, a `CLAUDE.md` jest plikiem wprowadzającym dla agentów Claude Code.
 
-## Run the iOS app locally on macOS
+## Uruchomienie aplikacji iOS lokalnie na macOS
 
-You need a Mac with Xcode (the iOS Simulator is bundled with it; Command Line Tools alone are not enough).
+Wymagany Mac z zainstalowanym Xcode (iOS Simulator jest jego częścią; same Command Line Tools nie wystarczą).
 
-1. Install **Xcode** from the Mac App Store (~15 GB).
-2. Install **XcodeGen** — the `ios/` directory is generated from `ios/project.yml`:
+1. Zainstaluj **Xcode** z Mac App Store (~15 GB).
+2. Zainstaluj **XcodeGen** — katalog `ios/` jest generowany z `ios/project.yml`:
    ```bash
    brew install xcodegen
    ```
-3. Generate and open the Xcode project:
+3. Wygeneruj i otwórz projekt Xcode:
    ```bash
    cd ios
    xcodegen generate
    open FieldNotebook.xcodeproj
    ```
-4. In Xcode pick any iPhone simulator from the scheme bar (e.g. "iPhone 16"), then **⌘R**. The simulator boots and installs the app.
+4. W Xcode wybierz dowolny iPhone simulator z paska schematów (np. „iPhone 16"), a następnie **⌘R**. Simulator wystartuje i zainstaluje aplikację.
 
-The default `Release` configuration points at the production backend (`https://backend.mirek-rpi.org`). Log in with one of the seeded accounts (see `backend/README.md` — e.g. `marek@firma.pl` / `test1234`).
+Domyślna konfiguracja `Release` celuje w produkcyjny backend (`https://backend.mirek-rpi.org`). Zaloguj się jednym z kont z bazy testowej (patrz `backend/README.md` — np. `marek@firma.pl` / `test1234`).
 
-### Hitting a local backend instead of production
+### Łączenie z lokalnym backendem zamiast produkcji
 
-1. In Xcode: **Product → Scheme → Edit Scheme → Run → Build Configuration → `Debug-Local`**. That sets `DEBUG_LOCAL` and points `Config.swift` at `http://localhost:3000`.
-2. In a second terminal:
+1. W Xcode: **Product → Scheme → Edit Scheme → Run → Build Configuration → `Debug-Local`**. To ustawia `DEBUG_LOCAL` i kieruje `Config.swift` na `http://localhost:3000`.
+2. W drugim terminalu:
    ```bash
    cd backend
-   bun install        # first time only
-   bun run migrate    # creates ./data/app.db
-   bun run seed       # inserts the four test accounts
+   bun install        # tylko za pierwszym razem
+   bun run migrate    # tworzy ./data/app.db
+   bun run seed       # wstawia cztery konta testowe
    bun run dev
    ```
-3. ⌘R in Xcode again — the simulator now talks to your laptop instead of the RPi.
+3. Ponownie ⌘R w Xcode — simulator komunikuje się teraz z laptopem zamiast z RPi.
 
-### CI artifact
+### Artefakt CI
 
-`.github/workflows/ios.yml` builds the iOS Simulator `.app` and publishes it as the `FieldNotebook-simulator` GitHub Actions artifact (14-day retention). Download and install instructions live in `ios/README.md` → **CI**.
+`.github/workflows/ios.yml` buduje `.app` dla iOS Simulatora i publikuje go jako artefakt GitHub Actions o nazwie `FieldNotebook-simulator` (retencja 14 dni). Instrukcja pobrania i instalacji znajduje się w `ios/README.md` → sekcja **CI**.

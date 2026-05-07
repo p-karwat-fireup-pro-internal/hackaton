@@ -1,50 +1,50 @@
-# Field Notebook Backend
+# Field Notebook — backend
 
-Bun + Hono + SQLite backend for the Field Service Technician iOS app.
+Backend w Bun + Hono + SQLite dla aplikacji iOS Field Service Technician.
 
-## Local development
+## Lokalny rozwój
 
 ```bash
 cd backend
 bun install
-bun run migrate     # creates ./data/app.db with schema
-bun run seed        # inserts 4 test technicians and their jobs
+bun run migrate     # tworzy ./data/app.db wraz ze schematem
+bun run seed        # wstawia 4 testowych techników i ich zlecenia
 bun run dev         # http://localhost:3000
 ```
 
-## Test accounts (all use password `test1234`)
+## Konta testowe (wszystkie z hasłem `test1234`)
 
-| Email | Display name | Scenario |
+| Email | Nazwa wyświetlana | Scenariusz |
 |---|---|---|
-| `marek@firma.pl` | Marek Kowalski (elektryk) | 8 jobs, 3 done + 5 pending — `default` |
-| `anna@firma.pl`  | Anna Nowak (hydraulik)    | 6 jobs; iOS client simulates offline   |
-| `piotr@firma.pl` | Piotr Wójcik (klimatyzacja) | 5 jobs + 1 with `is_new=1` — `new` |
-| `kasia@firma.pl` | Katarzyna Zielińska (ogolne) | 8 jobs, all done — `empty`           |
+| `marek@firma.pl` | Marek Kowalski (elektryk) | 8 zleceń, 3 zamknięte + 5 otwartych — `default` |
+| `anna@firma.pl`  | Anna Nowak (hydraulik)    | 6 zleceń; klient iOS symuluje tryb offline   |
+| `piotr@firma.pl` | Piotr Wójcik (klimatyzacja) | 5 zleceń + 1 z `is_new=1` — `new` |
+| `kasia@firma.pl` | Katarzyna Zielińska (ogólne) | 8 zleceń, wszystkie zamknięte — `empty`           |
 
-## Tests
+## Testy
 
 ```bash
 bun test
 ```
 
-Tests run against in-memory SQLite — they do not touch `./data/`.
+Testy działają na bazie SQLite w pamięci — nie modyfikują katalogu `./data/`.
 
-## Deployment
+## Wdrożenie
 
-Coolify on the user's RPi consumes `docker-compose.yml`. Volume `field-notebook-data` persists `app.db` and uploaded photos across redeploys.
+Coolify na RPi konsumuje `docker-compose.yml`. Wolumin `field-notebook-data` zachowuje `app.db` i przesłane zdjęcia między kolejnymi wdrożeniami.
 
-Required env vars in the Coolify UI:
-- `JWT_SECRET` — at least 32 chars, set ONCE at deploy time and never rotate without forcing a global re-login
+Wymagane zmienne środowiskowe w panelu Coolify:
+- `JWT_SECRET` — co najmniej 32 znaki, ustawiany JEDNOKROTNIE przy wdrożeniu i nie rotowany bez wymuszonego globalnego wylogowania użytkowników.
 
-## Smoke checklist (after every deploy)
+## Lista kontrolna po wdrożeniu
 
 - [ ] `curl https://<host>/health` → `{"ok":true}`
-- [ ] `POST /auth/login` with `marek@firma.pl` / `test1234` → 200 with `accessToken` and `refreshToken`
-- [ ] `GET /jobs` with bearer → 8 entries, none belonging to other techs
-- [ ] `POST /jobs/<id>/start` → status flips to `in_progress`
-- [ ] `POST /jobs/<id>/photos` with a 1×1 JPEG → 201
-- [ ] Wrong password 5× → 423 on 6th attempt for that account
+- [ ] `POST /auth/login` z `marek@firma.pl` / `test1234` → 200 z `accessToken` i `refreshToken`
+- [ ] `GET /jobs` z bearer → 8 wpisów, żaden nie należy do innego technika
+- [ ] `POST /jobs/<id>/start` → status zmienia się na `in_progress`
+- [ ] `POST /jobs/<id>/photos` z 1×1 JPEG → 201
+- [ ] 5× błędne hasło → 423 przy 6. próbie dla danego konta
 
-## Deployments
+## Wdrożenia
 
-Trigger redeploys manually from the Coolify dashboard (project `mirek-rpi` → `field-notebook-backend` → Deploy). The Coolify GitHub App is installed but its push-driven auto-deploy is currently bypassed; no GitHub Actions workflow is involved.
+Redeploy uruchamiaj ręcznie z panelu Coolify (projekt `mirek-rpi` → `field-notebook-backend` → Deploy). Aplikacja GitHub Coolify jest zainstalowana, ale automatyczne wdrażanie wyzwalane pushem jest obecnie wyłączone; żaden workflow GitHub Actions nie bierze udziału we wdrożeniu.
