@@ -2,21 +2,93 @@ import SwiftUI
 
 struct JobRow: View {
     let job: JobDTO
+
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(alignment: .top, spacing: 14) {
             StatusDot(status: job.status)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(job.address).font(.titleText).foregroundStyle(Color.titleInk)
-                HStack(spacing: 8) {
-                    Text(job.scheduledWindow).font(.mono(.regular, size: 13)).foregroundStyle(Color.muted)
-                    if job.priority == .urgent { PriorityTag(priority: .urgent) }
-                }
-                Text(job.description).font(.bodyText).foregroundStyle(Color.bodyInk).lineLimit(2)
+                .padding(.top, 6)
+
+            VStack(alignment: .leading, spacing: 2) {
+                categoryRow
+                    .padding(.bottom, 2)
+
+                Text(addressWithUnit)
+                    .font(.sans(.semibold, size: 17))
+                    .foregroundStyle(isDone ? Color.bodyInk : Color.titleInk)
+                    .strikethrough(isDone, color: Color.bodyInk)
+                    .lineLimit(1)
+
+                Text(job.description)
+                    .font(.sans(.regular, size: 14))
+                    .foregroundStyle(Color.bodyInk)
+                    .lineLimit(1)
+                    .padding(.top, 2)
+
+                statusRow
+                    .padding(.top, 8)
             }
-            Spacer()
-            IconView(name: .chevronRight).foregroundStyle(Color.borderHair)
+
+            IconView(name: .chevronRight, size: 18)
+                .foregroundStyle(Color.borderHair)
+                .padding(.top, 18)
         }
         .padding(.horizontal, 20)
-        .frame(minHeight: Spacing.rowHeight)
+        .padding(.vertical, 16)
+        .opacity(isDone ? 0.55 : 1)
+        .frame(minHeight: Spacing.rowHeight, alignment: .top)
+    }
+
+    private var categoryRow: some View {
+        HStack(spacing: 6) {
+            IconView(name: categoryIcon(for: job.category), size: 12)
+                .foregroundStyle(Color.muted)
+            Text(categoryLabel(for: job.category))
+                .font(.sans(.semibold, size: 12))
+                .foregroundStyle(Color.muted)
+            Spacer()
+            Text(job.ticketId)
+                .font(.mono(.regular, size: 11))
+                .foregroundStyle(Color.muted)
+        }
+    }
+
+    private var statusRow: some View {
+        HStack(spacing: 10) {
+            Text(statusText)
+                .font(.sans(.semibold, size: 13))
+                .foregroundStyle(statusColor)
+            Circle()
+                .fill(Color.borderHair)
+                .frame(width: 3, height: 3)
+            Text(job.scheduledWindow)
+                .font(.mono(.regular, size: 13))
+                .foregroundStyle(Color.muted)
+        }
+    }
+
+    private var addressWithUnit: String {
+        if let unit = job.unit { return "\(job.address) \(unit)" }
+        return job.address
+    }
+
+    private var isUrgent: Bool {
+        job.priority == .urgent && job.status != .done
+    }
+
+    private var isDone: Bool { job.status == .done }
+
+    private var statusText: String {
+        if isUrgent { return "Pilne" }
+        switch job.status {
+        case .pending:     return "Zaplanowane"
+        case .in_progress: return "W trakcie"
+        case .done:        return "Ukończone"
+        }
+    }
+
+    private var statusColor: Color {
+        if isUrgent { return Color.statusUrgent }
+        if isDone   { return Color.statusDone }
+        return Color.muted
     }
 }
