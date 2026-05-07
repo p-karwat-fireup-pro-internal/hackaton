@@ -10,8 +10,7 @@ struct TodayView: View {
         let next    = pending.first
 
         VStack(spacing: 0) {
-            TopBar(title: store.user?.displayName ?? "Field Notebook",
-                   syncState: store.syncState)
+            TopBar(date: Date(), syncState: store.syncState)
             ScrollView {
                 VStack(spacing: 16) {
                     if store.pendingNewJobBanner {
