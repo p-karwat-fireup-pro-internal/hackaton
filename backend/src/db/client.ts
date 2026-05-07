@@ -11,6 +11,9 @@ export function getDb(): Database {
   _db = new Database(config.DATABASE_PATH, { create: true });
   _db.exec("PRAGMA journal_mode = WAL;");
   _db.exec("PRAGMA foreign_keys = ON;");
+  _db.exec("PRAGMA synchronous = NORMAL;");
+  _db.exec("PRAGMA temp_store = MEMORY;");
+  _db.exec("PRAGMA busy_timeout = 5000;");
   return _db;
 }
 

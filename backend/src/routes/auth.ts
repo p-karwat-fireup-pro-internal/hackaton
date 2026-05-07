@@ -3,23 +3,16 @@ import { getDb } from "../db/client";
 import { LoginBody, RefreshBody } from "../schemas/auth";
 import { verifyPassword, DUMMY_HASH } from "../auth/passwords";
 import { signAccessToken } from "../auth/jwt";
-import {
-  isLocked, lockedUntil, recordLoginFailure, resetFailures,
-} from "../auth/lockout";
+import { recordLoginFailure, resetFailures } from "../auth/lockout";
 import {
   issueRefreshToken, rotateRefreshToken, revokeByToken,
 } from "../auth/refreshTokens";
 import { requireAuth, type AuthVars } from "../auth/middleware";
+import { userToDto, type UserRow } from "../schemas/user";
 
 export const auth = new Hono<{ Variables: AuthVars }>();
 
-type UserRow = {
-  id: string;
-  email: string;
-  password_hash: string;
-  display_name: string;
-  specialization: string;
-};
+type LoginUserRow = UserRow & { locked_until: number | null };
 
 auth.post("/login", async (c) => {
   const parsed = LoginBody.safeParse(await c.req.json().catch(() => ({})));
@@ -27,13 +20,13 @@ auth.post("/login", async (c) => {
 
   const db = getDb();
   const user = db
-    .query<UserRow, [string]>(
-      "SELECT id, email, password_hash, display_name, specialization FROM users WHERE email = ?",
+    .query<LoginUserRow, [string]>(
+      "SELECT id, email, password_hash, display_name, specialization, locked_until FROM users WHERE email = ?",
     )
     .get(parsed.data.email);
 
-  if (user && isLocked(db, user.id)) {
-    return c.json({ error: "account_locked", lockedUntil: lockedUntil(db, user.id) }, 423);
+  if (user && user.locked_until !== null && user.locked_until > Date.now()) {
+    return c.json({ error: "account_locked", lockedUntil: user.locked_until }, 423);
   }
 
   const ok = await verifyPassword(user?.password_hash ?? DUMMY_HASH, parsed.data.password);
@@ -48,12 +41,7 @@ auth.post("/login", async (c) => {
   return c.json({
     accessToken,
     refreshToken: refresh.token,
-    user: {
-      id: user.id,
-      email: user.email,
-      displayName: user.display_name,
-      specialization: user.specialization,
-    },
+    user: userToDto(user),
   });
 });
 

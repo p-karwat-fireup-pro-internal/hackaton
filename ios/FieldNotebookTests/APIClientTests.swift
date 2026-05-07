@@ -11,7 +11,7 @@ final class APIClientTests: XCTestCase {
         }
         let client = APIClient(baseURL: URL(string: "https://test")!, session: MockURLProtocol.session())
         do {
-            let _: LoginResponse = try await client.send("POST", "/auth/login",
+            let _: LoginResponse = try await client.send(.post, "/auth/login",
                                                          body: ["email": "x", "password": "y"],
                                                          as: LoginResponse.self)
             XCTFail("should throw")
@@ -47,7 +47,7 @@ final class APIClientTests: XCTestCase {
         let stub = TokenStub()
         let client = APIClient(baseURL: URL(string: "https://test")!, session: MockURLProtocol.session())
         await client.setTokenSource(stub)
-        let user: UserDTO = try! await client.send("GET", "/me", as: UserDTO.self)
+        let user: UserDTO = try! await client.send(.get, "/me", as: UserDTO.self)
         XCTAssertEqual(user.id, "u-1")
         let count = await stub.refreshCallCount
         XCTAssertEqual(count, 1)

@@ -13,7 +13,7 @@ struct BiometricGateView<Content: View>: View {
     }
 
     var body: some View {
-        ZStack {
+        Group {
             if unlocked {
                 content()
             } else {

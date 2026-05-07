@@ -1,6 +1,5 @@
 import type { MiddlewareHandler } from "hono";
 import { verifyAccessToken } from "./jwt";
-import { getDb } from "../db/client";
 
 export type AuthVars = {
   userId: string;
@@ -14,10 +13,6 @@ export function requireAuth(): MiddlewareHandler<{ Variables: AuthVars }> {
     if (!m) return c.json({ error: "unauthorized" }, 401);
     try {
       const claims = await verifyAccessToken(m[1]);
-      const exists = getDb()
-        .query<{ id: string }, [string]>("SELECT id FROM users WHERE id = ?")
-        .get(claims.sub);
-      if (!exists) return c.json({ error: "unauthorized" }, 401);
       c.set("userId", claims.sub);
       c.set("email", claims.email);
       await next();

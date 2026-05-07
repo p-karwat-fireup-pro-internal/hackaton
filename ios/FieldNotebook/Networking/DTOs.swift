@@ -37,7 +37,7 @@ struct JobDTO: Codable, Identifiable, Equatable {
     let scheduledWindow: String
     let scheduledStart: String
     let estimatedDurationMin: Int
-    let status: JobStatus
+    var status: JobStatus
     let priority: JobPriority
     let contactName: String?
     let contactPhone: String?

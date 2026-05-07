@@ -25,9 +25,8 @@ struct PhotoPicker: UIViewControllerRepresentable {
             picker.dismiss(animated: true)
             guard let result = results.first else { return }
             result.itemProvider.loadObject(ofClass: UIImage.self) { obj, _ in
-                if let img = obj as? UIImage {
-                    DispatchQueue.main.async { self.parent.image = img }
-                }
+                guard let img = obj as? UIImage else { return }
+                Task { @MainActor in self.parent.image = img }
             }
         }
     }

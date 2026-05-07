@@ -10,6 +10,11 @@ export function loginRateLimit(opts: { max: number; windowMs: number }): Middlew
       c.req.header("X-Real-IP") ??
       "unknown";
     const now = Date.now();
+    if (buckets.size > 1024) {
+      for (const [key, bucket] of buckets) {
+        if (bucket.resetAt < now) buckets.delete(key);
+      }
+    }
     const b = buckets.get(ip);
     if (!b || b.resetAt < now) {
       buckets.set(ip, { count: 1, resetAt: now + opts.windowMs });

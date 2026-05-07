@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
+import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { config } from "../config";
 
@@ -27,7 +27,10 @@ export function writePhoto(
 }
 
 export function readPhoto(relPath: string): Uint8Array | null {
-  const abs = join(basePath(), relPath);
-  if (!existsSync(abs)) return null;
-  return readFileSync(abs);
+  try {
+    return readFileSync(join(basePath(), relPath));
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code === "ENOENT") return null;
+    throw e;
+  }
 }

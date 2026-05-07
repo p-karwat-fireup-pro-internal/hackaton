@@ -12,7 +12,7 @@ struct JobRow: View {
                 categoryRow
                     .padding(.bottom, 2)
 
-                Text(addressWithUnit)
+                Text(job.addressWithUnit)
                     .font(.sans(.semibold, size: 17))
                     .foregroundStyle(isDone ? Color.bodyInk : Color.titleInk)
                     .strikethrough(isDone, color: Color.bodyInk)
@@ -66,11 +66,6 @@ struct JobRow: View {
         }
     }
 
-    private var addressWithUnit: String {
-        if let unit = job.unit { return "\(job.address) \(unit)" }
-        return job.address
-    }
-
     private var isUrgent: Bool {
         job.priority == .urgent && job.status != .done
     }
@@ -78,12 +73,7 @@ struct JobRow: View {
     private var isDone: Bool { job.status == .done }
 
     private var statusText: String {
-        if isUrgent { return "Pilne" }
-        switch job.status {
-        case .pending:     return "Zaplanowane"
-        case .in_progress: return "W trakcie"
-        case .done:        return "Ukończone"
-        }
+        isUrgent ? "Pilne" : job.status.polishLabel
     }
 
     private var statusColor: Color {

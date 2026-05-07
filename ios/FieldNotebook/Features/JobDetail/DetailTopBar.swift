@@ -8,8 +8,7 @@ struct DetailTopBar: View {
     var body: some View {
         HStack {
             Button(action: onBack) {
-                IconView(name: .chevronRight)
-                    .rotationEffect(.degrees(180))
+                IconView(name: .chevronLeft)
                     .foregroundStyle(Color.bodyInk)
                     .frame(width: Spacing.tapMin, height: Spacing.tapMin)
             }

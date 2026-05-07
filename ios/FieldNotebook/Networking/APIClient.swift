@@ -5,10 +5,20 @@ protocol TokenSource: AnyObject {
     func handleUnauthorized() async -> String?  // returns new access token, or nil if refresh failed
 }
 
+enum HTTPMethod: String {
+    case get = "GET"
+    case post = "POST"
+    case put = "PUT"
+    case delete = "DELETE"
+}
+
 actor APIClient {
     let baseURL: URL
     let session: URLSession
     weak var tokenSource: TokenSource?
+
+    private let encoder = JSONEncoder()
+    private let decoder = JSONDecoder()
 
     init(baseURL: URL = AppConfig.apiBaseURL, session: URLSession = .shared) {
         self.baseURL = baseURL
@@ -16,7 +26,7 @@ actor APIClient {
     }
 
     private func makeRequest(
-        _ method: String,
+        _ method: HTTPMethod,
         _ path: String,
         body: Data? = nil,
         contentType: String? = "application/json",
@@ -25,7 +35,7 @@ actor APIClient {
         var url = baseURL
         url.append(path: path)
         var req = URLRequest(url: url)
-        req.httpMethod = method
+        req.httpMethod = method.rawValue
         if let body { req.httpBody = body }
         if let contentType { req.setValue(contentType, forHTTPHeaderField: "Content-Type") }
         if let accessToken { req.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization") }
@@ -33,20 +43,20 @@ actor APIClient {
     }
 
     func send<T: Decodable>(
-        _ method: String,
+        _ method: HTTPMethod,
         _ path: String,
         body: (any Encodable)? = nil,
         as: T.Type
     ) async throws -> T {
         let data = try await sendRaw(method, path, body: body, expectingJSON: true)
         do {
-            return try JSONDecoder().decode(T.self, from: data)
+            return try decoder.decode(T.self, from: data)
         } catch {
             throw APIError.decoding
         }
     }
 
-    func sendVoid(_ method: String, _ path: String, body: (any Encodable)? = nil) async throws {
+    func sendVoid(_ method: HTTPMethod, _ path: String, body: (any Encodable)? = nil) async throws {
         _ = try await sendRaw(method, path, body: body, expectingJSON: false)
     }
 
@@ -62,33 +72,33 @@ actor APIClient {
         let boundary = "Boundary-\(UUID().uuidString)"
         var body = Data()
         for (k, v) in fields {
-            body.append("--\(boundary)\r\n".data(using: .utf8)!)
-            body.append("Content-Disposition: form-data; name=\"\(k)\"\r\n\r\n".data(using: .utf8)!)
-            body.append(v.data(using: .utf8)!)
-            body.append("\r\n".data(using: .utf8)!)
+            body.append(Data("--\(boundary)\r\n".utf8))
+            body.append(Data("Content-Disposition: form-data; name=\"\(k)\"\r\n\r\n".utf8))
+            body.append(Data(v.utf8))
+            body.append(Data("\r\n".utf8))
         }
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"\(fileField)\"; filename=\"\(filename)\"\r\n".data(using: .utf8)!)
-        body.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
+        body.append(Data("--\(boundary)\r\n".utf8))
+        body.append(Data("Content-Disposition: form-data; name=\"\(fileField)\"; filename=\"\(filename)\"\r\n".utf8))
+        body.append(Data("Content-Type: \(mimeType)\r\n\r\n".utf8))
         body.append(fileData)
-        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        body.append(Data("\r\n--\(boundary)--\r\n".utf8))
 
         let token = await tokenSource?.accessToken
-        var req = makeRequest("POST", path, body: body,
+        var req = makeRequest(.post, path, body: body,
                               contentType: "multipart/form-data; boundary=\(boundary)",
                               accessToken: token)
         return try await execute(&req, asJSON: T.self)
     }
 
     private func sendRaw(
-        _ method: String,
+        _ method: HTTPMethod,
         _ path: String,
         body: (any Encodable)?,
         expectingJSON: Bool
     ) async throws -> Data {
         let token = await tokenSource?.accessToken
         let payload: Data?
-        if let body { payload = try JSONEncoder().encode(AnyEncodable(body)) } else { payload = nil }
+        if let body { payload = try encoder.encode(AnyEncodable(body)) } else { payload = nil }
         var req = makeRequest(method, path, body: payload, accessToken: token)
         let (data, response) = try await runWithRefreshOn401(&req)
         guard let http = response as? HTTPURLResponse else { throw APIError.network }
@@ -100,7 +110,7 @@ actor APIClient {
         let (data, response) = try await runWithRefreshOn401(&req)
         guard let http = response as? HTTPURLResponse else { throw APIError.network }
         try mapStatus(http, data: data)
-        do { return try JSONDecoder().decode(T.self, from: data) }
+        do { return try decoder.decode(T.self, from: data) }
         catch { throw APIError.decoding }
     }
 
@@ -120,11 +130,11 @@ actor APIClient {
         case 403:       throw APIError.forbidden
         case 404:       throw APIError.notFound
         case 409:
-            let payload = try? JSONDecoder().decode(ConflictBody.self, from: data)
+            let payload = try? decoder.decode(ConflictBody.self, from: data)
             throw APIError.conflict(currentStatus: payload?.current)
         case 415:       throw APIError.invalidRequest
         case 423:
-            let payload = try? JSONDecoder().decode(LockedBody.self, from: data)
+            let payload = try? decoder.decode(LockedBody.self, from: data)
             let until = payload.flatMap { Date(timeIntervalSince1970: TimeInterval($0.lockedUntil) / 1000) }
                 ?? Date().addingTimeInterval(15 * 60)
             throw APIError.accountLocked(lockedUntil: until)
@@ -146,7 +156,8 @@ extension APIClient {
 private struct ConflictBody: Decodable { let current: String? }
 private struct LockedBody: Decodable { let lockedUntil: Int }
 
-// AnyEncodable wrapper so the Encodable existential can be encoded.
+// Bridges `(any Encodable)?` through `JSONEncoder.encode` — without the wrapper
+// the call site does not know the concrete type and the encode overload won't bind.
 private struct AnyEncodable: Encodable {
     let value: any Encodable
     init(_ value: any Encodable) { self.value = value }

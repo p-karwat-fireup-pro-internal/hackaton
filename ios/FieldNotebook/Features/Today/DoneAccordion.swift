@@ -21,7 +21,9 @@ struct DoneAccordion: View {
                 .frame(height: Spacing.tapMin)
             }
             if expanded {
-                ForEach(doneJobs) { JobRow(job: $0) }
+                LazyVStack(spacing: 0) {
+                    ForEach(doneJobs) { JobRow(job: $0) }
+                }
             }
         }
         .background(Color.cream)
